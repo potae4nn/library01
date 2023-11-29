@@ -1,0 +1,55 @@
+version: "3.7"
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    restart: always
+    working_dir: /app
+    command:
+      - start:dev
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=mypassword
+      - DB_NAME=db_library
+    ports:
+      - 3000:3000
+    volumes:
+      - ./backend:/app
+    networks: 
+      - backend
+
+  db:
+    platform: linux/x86_64
+    image: mysql:8.0.35-debian
+    volumes:
+      - ./db/data:/var/lib/mysql
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: mypassword
+      MYSQL_DATABASE: db_library
+      MYSQL_PASSWORD: mypassword
+    networks: 
+      - backend
+
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin
+    restart: always
+    ports:
+      - "8090:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: mypassword
+    networks:
+      - backend
+
+networks:
+  backend:
